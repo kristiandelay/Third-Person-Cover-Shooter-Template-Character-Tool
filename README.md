@@ -48,13 +48,17 @@ Next we will import a free character asset from the asset store. We will be usin
 	
 Step 3.2) 
 Confirm we are inporting the correct character package. download from here: https://assetstore.unity.com/packages/3d/characters/robots/space-robot-kyle-4696
+
 ![Step 3.2](https://github.com/kristiandelay/Third-Person-Cover-Shooter-Template-Character-Tool/blob/master/tutorial/images/Step%203.2.png?raw=true)		
 Step 3.3) 
 New folder structure after importing. download from here: https://assetstore.unity.com/packages/3d/characters/robots/space-robot-kyle-4696
-![Step 3.3](https://github.com/kristiandelay/Third-Person-Cover-Shooter-Template-Character-Tool/blob/master/tutorial/images/Step%203.3.png?raw=true)		
+
+![Step 3.3](https://github.com/kristiandelay/Third-Person-Cover-Shooter-Template-Character-Tool/blob/master/tutorial/images/Step%203.3.png?raw=true)	
+
 Step 3.4) 
 Update the robot kyle Animation. Change from Legacy to humaniod 
 ![Step 3.4](https://github.com/kristiandelay/Third-Person-Cover-Shooter-Template-Character-Tool/blob/master/tutorial/images/Step%203.4.png?raw=true)	
+
 Step 3.5) 
 After selecting humanoid click apply button to update animation type.
 ![Step 3.5](https://github.com/kristiandelay/Third-Person-Cover-Shooter-Template-Character-Tool/blob/master/tutorial/images/Step%203.6.png?raw=true)
