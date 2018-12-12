@@ -43,14 +43,16 @@ There are two ways to import the Third-Person-Cover-Shooter-Template-Character-T
 
 **(Roadmap)**
 
-Finished
-* Added Weapon Prefab Generator
-* Added AI Generator
-
-TODO
-Add Basic UI Generator
-Better error handling
-Tool clean up
+- [x] Character Set up
+- [x] Character Scriptables
+- [x] Weapon Prefab Generator
+- [x] Weapon Scriptables
+- [x] Weapon Inventory Generator
+- [x] Weapon Inventory Scriptables
+- [x] AI Generator
+- [ ] UI Generator
+- [ ] Better error handling
+- [ ] Clean up
 
 Questions, suggestions, or simply hate the code email me 
 <kristiandelay@gmail.com>
