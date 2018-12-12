@@ -4,44 +4,32 @@ using System.Collections.Generic;
 
 namespace CoverShooter.Tools
 {
-
-    public class ThirdPersonCharacterGeneratorWindow : EditorWindow
+    // TODO: Convert script values to scriptables to remove hardcoded values
+    public class ThirdPersonCharacterGeneratorWindow : TPCSTEditorWindow
     {
         #region Variables
 
         // Character Objects
+        public int selected_layer;
         public GameObject camera;
         public GameObject character;
         public Transform left_hand;
         public Transform right_hand;
         public GameObject character_face;
-        public List<GameObject> weapons_prefabs = new List<GameObject>();
-
-        public bool debug_log = true;
         public bool add_character_face = false;
+        TPCSTScriptableCharacter character_defaults;
+
+        // Camera 
+        public string camera_tag = "MainCamera";
 
         // Animations
         Animator character_animator;
-        RuntimeAnimatorController runtimeAnimatorController;
         public bool override_animation = true;
 
-        //GUI
-        static ThirdPersonCharacterGeneratorWindow window;
-        protected Texture2D splashTexture;
-        protected GUIStyle titleStyle, subtitleStyle, wrapperStyle;
+        static protected ThirdPersonCharacterGeneratorWindow window;
 
-        #endregion
-
-        #region Debug
-
-        public virtual void AlertProgress(string text)
-        {
-            if(debug_log)
-            {
-                ShowNotification(new GUIContent(text));
-                Debug.Log(text);
-            }
-        }
+        string left_hand_weapon_holder_key = "LeftHandWeaponHolder";
+        string right_hand_weapon_holder_key = "RightHandWeaponHolder";
 
         #endregion
 
@@ -55,158 +43,29 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default ThirdPersonCamera values");
 
+            TPCSTCameraStates cameraStates = character_defaults.cameraStates;
+            thirdPersonCamera.tag = camera_tag;
             thirdPersonCamera.Target = character.GetComponent<CharacterMotor>();
-            thirdPersonCamera.AvoidObstacles = true;
-            thirdPersonCamera.IgnoreObstaclesWhenZooming = true;
-            thirdPersonCamera.Zoom = 10;
-            thirdPersonCamera.ShakingAffectsAim = true;
-            thirdPersonCamera.AskForSmoothRotations = true;
+            thirdPersonCamera.AvoidObstacles = cameraStates.AvoidObstacles;
+            thirdPersonCamera.IgnoreObstaclesWhenZooming = cameraStates.IgnoreObstaclesWhenZooming;
+            thirdPersonCamera.Zoom = cameraStates.Zoom ;
+            thirdPersonCamera.ShakingAffectsAim = cameraStates.ShakingAffectsAim;
+            thirdPersonCamera.AskForSmoothRotations = cameraStates.AskForSmoothRotations;
+            thirdPersonCamera.States.Default = cameraStates.States.Default;
+            thirdPersonCamera.States.Aim = cameraStates.States.Aim;
+            thirdPersonCamera.States.Melee = cameraStates.States.Melee;
+            thirdPersonCamera.States.Crouch = cameraStates.States.Crouch;
+            thirdPersonCamera.States.LowCover = cameraStates.States.LowCover;
+            thirdPersonCamera.States.LowCoverGrenade = cameraStates.States.LowCoverGrenade;
+            thirdPersonCamera.States.TallCover = cameraStates.States.TallCover;
+            thirdPersonCamera.States.TallCoverBack = cameraStates.States.TallCoverBack;
+            thirdPersonCamera.States.Corner = cameraStates.States.Corner;
+            thirdPersonCamera.States.Climb = cameraStates.States.Climb;
+            thirdPersonCamera.States.Dead = cameraStates.States.Dead;
+            thirdPersonCamera.States.Zoom = cameraStates.States.Zoom;
+            thirdPersonCamera.States.LowCornerZoom = cameraStates.States.LowCornerZoom;
+            thirdPersonCamera.States.TallCornerZoom = cameraStates.States.TallCornerZoom;
 
-            // Set Camera States
-            Vector3 constantPivot = new Vector3(0, 2, 0);
-            float fov = 60;
-            float min_angle = -65;
-            float max_angle = 45;
-
-            // Set Default Camera State
-            CameraState default_state = thirdPersonCamera.States.Default;
-            default_state.Offset = new Vector3(0.64f, 0.1f, -2.5f);
-            default_state.Orientation = Vector3.zero;
-            default_state.Pivot = Pivot.constant;
-            default_state.ConstantPivot = constantPivot;
-            default_state.FOV = fov;
-            default_state.MinAngle = min_angle;
-            default_state.MaxAngle = max_angle;
-
-            // Set Aim Camera State
-            CameraState aim_state = thirdPersonCamera.States.Aim;
-            aim_state.Offset = new Vector3(0.75f, -0.25f, -1.7f);
-            aim_state.Orientation = Vector3.zero;
-            aim_state.Pivot = Pivot.constant;
-            aim_state.ConstantPivot = constantPivot;
-            aim_state.FOV = fov;
-            aim_state.MinAngle = min_angle;
-            aim_state.MaxAngle = max_angle;
-
-            // Set Melee Camera State
-            CameraState melee_state = thirdPersonCamera.States.Melee;
-            melee_state.Offset = new Vector3(0.3f, -0.3f, -4f);
-            melee_state.Orientation = Vector3.zero;
-            melee_state.Pivot = Pivot.constant;
-            melee_state.ConstantPivot = constantPivot;
-            melee_state.FOV = fov;
-            melee_state.MinAngle = min_angle;
-            melee_state.MaxAngle = max_angle;
-
-            // Set Crouch Camera State
-            CameraState crouch_state = thirdPersonCamera.States.Crouch;
-            crouch_state.Offset = new Vector3(0.75f, -0.8f, -1f);
-            crouch_state.Orientation = Vector3.zero;
-            crouch_state.Pivot = Pivot.constant;
-            crouch_state.ConstantPivot = constantPivot;
-            crouch_state.FOV = fov;
-            crouch_state.MinAngle = min_angle;
-            crouch_state.MaxAngle = max_angle;
-
-            // Set Low Cover Camera State
-            CameraState low_cover_state = thirdPersonCamera.States.LowCover;
-            low_cover_state.Offset = new Vector3(0.5f, -0.3f, -1.5f);
-            low_cover_state.Orientation = Vector3.zero;
-            low_cover_state.Pivot = Pivot.constant;
-            low_cover_state.ConstantPivot = new Vector3(0, 1.75f, 0); ;
-            low_cover_state.FOV = fov;
-            low_cover_state.MinAngle = min_angle;
-            low_cover_state.MaxAngle = max_angle;
-
-            // Set Lower Cover Grenade Camera State
-            CameraState low_cover_grenade_state = thirdPersonCamera.States.LowCoverGrenade;
-            low_cover_grenade_state.Offset = new Vector3(0.23f, -0.23f, -2.2f);
-            low_cover_grenade_state.Orientation = Vector3.zero;
-            low_cover_grenade_state.Pivot = Pivot.constant;
-            low_cover_grenade_state.ConstantPivot = constantPivot;
-            low_cover_grenade_state.FOV = fov;
-            low_cover_grenade_state.MinAngle = min_angle;
-            low_cover_grenade_state.MaxAngle = max_angle;
-
-            // Set Tall Cover Camera State
-            CameraState tall_cover_state = thirdPersonCamera.States.TallCover;
-            tall_cover_state.Offset = new Vector3(0.5f, -0.8f, -1.5f);
-            tall_cover_state.Orientation = Vector3.zero;
-            tall_cover_state.Pivot = Pivot.constant;
-            tall_cover_state.ConstantPivot = constantPivot;
-            tall_cover_state.FOV = fov;
-            tall_cover_state.MinAngle = min_angle;
-            tall_cover_state.MaxAngle = max_angle;
-
-            // Set Tall Cover Back Camera State
-            CameraState tall_cover_back_state = thirdPersonCamera.States.TallCoverBack;
-            tall_cover_back_state.Offset = new Vector3(0.65f, -0.2f, -1.5f);
-            tall_cover_back_state.Orientation = Vector3.zero;
-            tall_cover_back_state.Pivot = Pivot.constant;
-            tall_cover_back_state.ConstantPivot = new Vector3(0, 1.6f, 0);
-            tall_cover_back_state.FOV = fov;
-            tall_cover_back_state.MinAngle = min_angle;
-            tall_cover_back_state.MaxAngle = max_angle;
-
-            // Set Corner Camera State
-            CameraState corner_state = thirdPersonCamera.States.Corner;
-            corner_state.Offset = new Vector3(1.2f, -0.2f, -2.4f);
-            corner_state.Orientation = Vector3.zero;
-            corner_state.Pivot = Pivot.constant;
-            corner_state.ConstantPivot = new Vector3(0, 1.75f, 0);
-            corner_state.FOV = fov;
-            corner_state.MinAngle = min_angle;
-            corner_state.MaxAngle = max_angle;
-
-            // Set Climb State
-            CameraState climb_state = thirdPersonCamera.States.Climb;
-            climb_state.Offset = new Vector3(0.75f, -0.25f, -1.7f);
-            climb_state.Orientation = Vector3.zero;
-            climb_state.Pivot = Pivot.constant;
-            climb_state.ConstantPivot = constantPivot;
-            climb_state.FOV = fov;
-            climb_state.MinAngle = min_angle;
-            climb_state.MaxAngle = max_angle;
-
-            // Set Dead State
-            CameraState dead_state = thirdPersonCamera.States.Dead;
-            dead_state.Offset = new Vector3(0, 1, -2.5f);
-            dead_state.Orientation = Vector3.zero;
-            dead_state.Pivot = Pivot.constant;
-            dead_state.ConstantPivot = Vector3.zero;
-            dead_state.FOV = fov;
-            dead_state.MinAngle = min_angle;
-            dead_state.MaxAngle = max_angle;
-
-            // Set Zoom State
-            CameraState zoom_state = thirdPersonCamera.States.Zoom;
-            zoom_state.Offset = new Vector3(0.5f, 0.15f, -1);
-            zoom_state.Orientation = Vector3.zero;
-            zoom_state.Pivot = Pivot.constant;
-            zoom_state.ConstantPivot = Vector3.zero;
-            zoom_state.FOV = 40;
-            zoom_state.MinAngle = min_angle;
-            zoom_state.MaxAngle = max_angle;
-
-            // Set Low Corner Zoom State
-            CameraState low_corner_zoom_state = thirdPersonCamera.States.LowCornerZoom;
-            low_corner_zoom_state.Offset = new Vector3(1.2f, -0.2f, -1.2f);
-            low_corner_zoom_state.Orientation = Vector3.zero;
-            low_corner_zoom_state.Pivot = Pivot.constant;
-            low_corner_zoom_state.ConstantPivot = new Vector3(0, 1.35f, 0);
-            low_corner_zoom_state.FOV = 40;
-            low_corner_zoom_state.MinAngle = min_angle;
-            low_corner_zoom_state.MaxAngle = max_angle;
-
-            // Set Tall Corner Zoom State
-            CameraState tall_corner_zoom_state = thirdPersonCamera.States.TallCornerZoom;
-            tall_corner_zoom_state.Offset = new Vector3(0.8f, -0.2f, -1.2f);
-            tall_corner_zoom_state.Orientation = Vector3.zero;
-            tall_corner_zoom_state.Pivot = Pivot.constant;
-            tall_corner_zoom_state.ConstantPivot = new Vector3(0, 1.75f, 0);
-            tall_corner_zoom_state.FOV = 40;
-            tall_corner_zoom_state.MinAngle = min_angle;
-            tall_corner_zoom_state.MaxAngle = max_angle;
 
 
             AlertProgress("Setting Default ThirdPersonCamera values complete");
@@ -246,73 +105,13 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default Crosshair values");
 
-            // Setup Crosshair Defaults
-            CrosshairSettings default_settings = crossHair.Default;
-            default_settings.Scale = 1;
-            default_settings.LowAngle = 1.5f;
-            default_settings.HighAngle = 10;
-            default_settings.Adaptation = 2;
-            default_settings.ShakeMultiplier = 2;
-            default_settings.RecoilMultiplier = 1;
-            default_settings.Sprites = null;
+            TPCSTCrosshair crosshair = character_defaults.crosshair;
 
-            // Setup Crosshair Pistol
-            CrosshairSettings pistol_settings = crossHair.Pistol;
-            pistol_settings.Sprites = null;
-            pistol_settings.Scale = 1;
-            pistol_settings.LowAngle = 1.5f;
-            pistol_settings.HighAngle = 10;
-            pistol_settings.Adaptation = 2;
-            pistol_settings.ShakeMultiplier = 2;
-            pistol_settings.RecoilMultiplier = 1;
-
-            Sprite[] pistol_sprite = new Sprite[10];
-            Sprite[] sprites = Resources.LoadAll<Sprite>("Assets/UI/crosshairs_animated");
-            int sprite_start_index = 10;
-            for (int i = 0; i < pistol_sprite.Length; i++)
-            {
-                pistol_sprite[i] = sprites[sprite_start_index + i];
-            }
-            crossHair.Pistol.Sprites = pistol_sprite;
-
-            // Setup Crosshair Rifle 
-            CrosshairSettings rifle_settings = crossHair.Rifle;
-            rifle_settings.Scale = 1;
-            rifle_settings.LowAngle = 1.5f;
-            rifle_settings.HighAngle = 10;
-            rifle_settings.Adaptation = 2;
-            rifle_settings.ShakeMultiplier = 2;
-            rifle_settings.RecoilMultiplier = 1;
-
-            Sprite[] rifle_sprite = new Sprite[10];
-            sprite_start_index = 20;
-
-            for (int i = 0; i < rifle_sprite.Length; i++)
-            {
-                rifle_sprite[i] = sprites[sprite_start_index + i];
-            }
-            crossHair.Rifle.Sprites = rifle_sprite;
-
-            // Setup Crosshair Shotgun
-            CrosshairSettings shotgun_settings = crossHair.Shotgun;
-            shotgun_settings.Scale = 1;
-            shotgun_settings.LowAngle = 1.5f;
-            shotgun_settings.HighAngle = 10;
-            shotgun_settings.Adaptation = 2;
-            shotgun_settings.ShakeMultiplier = 2;
-            shotgun_settings.RecoilMultiplier = 1;
-            shotgun_settings.Sprites = null;
-
-            // Setup Crosshair Sniper
-            CrosshairSettings sniper_settings = crossHair.Sniper;
-            sniper_settings.Scale = 1;
-            sniper_settings.LowAngle = 1.5f;
-            sniper_settings.HighAngle = 10;
-            sniper_settings.Adaptation = 2;
-            sniper_settings.ShakeMultiplier = 2;
-            sniper_settings.RecoilMultiplier = 1;
-            sniper_settings.Sprites = null;
-
+            crossHair.Default = crosshair.Default;
+            crossHair.Pistol = crosshair.Pistol;
+            crossHair.Rifle = crosshair.Rifle;
+            crossHair.Shotgun = crosshair.Shotgun;
+            crossHair.Sniper = crosshair.Sniper;
 
             AlertProgress("Setting Default Crosshair values complete");
         }
@@ -417,7 +216,7 @@ namespace CoverShooter.Tools
 
             if (character_animator == false)
             {
-                AlertProgress("Invalid Lifeform Animator not Found. Invalid prefab, prefab must have animation controller to create life");
+                AlertProgress("Invalid prefab, must have animation controller to create life");
                 continute_setup = false;
                 return continute_setup;
             }
@@ -433,11 +232,13 @@ namespace CoverShooter.Tools
                     AlertProgress("Character Runtime Animator Controller not found");
                     AlertProgress("Assigning Runtime Animator Controller");
 
-                    character_animator.runtimeAnimatorController = runtimeAnimatorController;
+                    character_animator.runtimeAnimatorController = character_defaults.animatorController.runtimeAnimatorController;
                     continute_setup = true;
                     AlertProgress("Reanimation process is complete");
 
                 }
+
+                character_animator.applyRootMotion = character_defaults.animatorController.applyRootMotion; ;
 
                 AlertProgress("Runtime Animator Controller name: " + character_animator.runtimeAnimatorController.name);
             }
@@ -454,14 +255,15 @@ namespace CoverShooter.Tools
 
             AlertProgress("Setting Default Rigidbody values");
 
-            rigidbody.mass = 60;
-            rigidbody.drag = 0;
-            rigidbody.angularDrag = 0.05f;
-            rigidbody.useGravity = false;
-            rigidbody.isKinematic = false;
-            rigidbody.interpolation = RigidbodyInterpolation.None;
-            rigidbody.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            TPCSTRigidbody rigidBody = character_defaults.rigidbody;
+            rigidbody.mass = rigidBody.mass;
+            rigidbody.drag = rigidBody.drag;
+            rigidbody.angularDrag = rigidBody.angular_drag;
+            rigidbody.useGravity = rigidBody.use_gravity;
+            rigidbody.isKinematic = rigidBody.is_kinematic;
+            rigidbody.interpolation = rigidBody.interpolation;
+            rigidbody.collisionDetectionMode = rigidBody.collisionDetectionMode;
+            rigidbody.constraints = rigidBody.constraints;
 
             AlertProgress("Setting Default Rigidbody values complete");
 
@@ -499,28 +301,15 @@ namespace CoverShooter.Tools
                 return;
             }
             AlertProgress("Setting Default CapsuleCollider values");
-            capsuleCollider.isTrigger = false;
 
-            PhysicMaterial physicMaterial = (PhysicMaterial)Resources.Load("Animations/Mecanim assets/ZeroFriction", typeof(PhysicMaterial)) as PhysicMaterial;
-            if(physicMaterial)
-            {
-                capsuleCollider.material = physicMaterial;
-            } 
-            else {
-                capsuleCollider.material.dynamicFriction = 0;
-                capsuleCollider.material.staticFriction = 0;
-                capsuleCollider.material.bounciness = 0;
-                capsuleCollider.material.frictionCombine = PhysicMaterialCombine.Multiply;
-                capsuleCollider.material.bounceCombine = PhysicMaterialCombine.Average;
-                capsuleCollider.material.name = "ZeroPhysicsDynamic";
-            }
-
-            capsuleCollider.center = new Vector3(0, 0.95f, 0);
-            capsuleCollider.radius = 0.3f;
-            capsuleCollider.height = 1.9f;
-            capsuleCollider.direction = 1; //Y-Axis
+            TPCSTCapsuleCollider capsule = character_defaults.capsuleCollider;
+            capsuleCollider.isTrigger = capsule.is_trigger;
+            capsuleCollider.material = capsule.physicMaterial;
+            capsuleCollider.center = capsule.center;
+            capsuleCollider.radius = capsule.radius;
+            capsuleCollider.height = capsule.height;
+            capsuleCollider.direction = (int)capsule.direction;
             
-
             AlertProgress("Setting Default CapsuleCollider values complete");
         }
 
@@ -557,9 +346,9 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default Actor values");
 
-            actor.Side = 1;
-            actor.IsAggressive = true;
-
+            TPCSTActor tempActor = character_defaults.actor;
+            actor.Side = tempActor.side;
+            actor.IsAggressive = tempActor.is_aggressive;
 
             AlertProgress("Setting Default Actor values complete");
         }
@@ -597,147 +386,37 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default CharacterMotor values");
 
-            characterMotor.IsAlive = true;
-            characterMotor.Speed = 1.25f;
-            characterMotor.MoveMultiplier = 1.35f;
-            characterMotor.CanRun = true;
-            characterMotor.CanSprint = true;
-            characterMotor.GroundThreshold = 0.25f;
-            characterMotor.FallThreshold = 1.2f;
-            characterMotor.ObstacleDistance = 0.05f;
-            characterMotor.Gravity = 18;
-            characterMotor.RecoilRecovery = 17;
-            characterMotor.IsFiringFromCamera = true;
-            characterMotor.ZoomErrorMultiplier = 0.75f;
-            characterMotor.CrouchHeight = 1.5f;
-            characterMotor.AccelerationDamp = 1;
-            characterMotor.DeccelerationDamp = 3;
-            characterMotor.MaxSlope = 55;
-            characterMotor.DamageMultiplier = 1;
-            characterMotor.IsEquipped = false;
-
-            // Configure WeaponDescription
-            WeaponDescription weaponDescription = characterMotor.Weapon;
-            weaponDescription.PreferSwapping = true;
-            weaponDescription.IsDualWielding = true;
-            weaponDescription.IsHeavy = false;
-            weaponDescription.PreventCovers = false;
-            weaponDescription.PreventClimbing = false;
-            weaponDescription.PreventArmLowering = false;
-            weaponDescription.Aiming = WeaponAiming.input;
-
-            // Configure GrenadeSettings
-            GrenadeSettings grenadeSettings = characterMotor.Grenade;
-            grenadeSettings.Left = null;
-            grenadeSettings.Right = null;
-            grenadeSettings.MaxVelocity = 12.5f;
-            grenadeSettings.Gravity = 10;
-            grenadeSettings.Step = 0.1f;
-            grenadeSettings.StandingOrigin = new Vector3(0.33f, 1.88f, 0);
-            grenadeSettings.CrouchOrigin = new Vector3(0.5f, 1.43f, 0);
-            grenadeSettings.DropOnHit = true;
-
-            // Configure IKSettings
-            IKSettings ikSettings = characterMotor.IK;
-            ikSettings.Enabled = true;
-            ikSettings.MinIterations = 2;
-            ikSettings.MaxIterations = 10;
-            ikSettings.Delay.Min = 0;
-            ikSettings.Delay.Max = 0;
-            ikSettings.Delay.MinDistance = 0;
-            ikSettings.Delay.MaxDistance = 0;
-
-            // Configure CoverSettings
-            CoverSettings coverSettings = characterMotor.CoverSettings;
-            coverSettings.CanUseTallCorners = true;
-            coverSettings.CanUseLowCorners = true;
-            coverSettings.ExitBack = 120;
-            coverSettings.LowCapsuleHeight = 0.75f;
-            coverSettings.LowAimCapsuleHeight = 1.25f;
-            coverSettings.LowRotationSpeed = 10;
-            coverSettings.TallRotationSpeed = 15;
-            coverSettings.EnterDistance = 0.2f;
-            coverSettings.LeaveDistance = 0.25f;
-            coverSettings.ClimbDistance = 0.5f;
-            coverSettings.MinCrouchDistance = 0.2f;
-            coverSettings.MaxCrouchDistance = 1.5f;
-            coverSettings.PivotSideMargin = 0.5f;
-            coverSettings.CornerAimTriggerDistance = 0.6f;
-            coverSettings.TallSideEnterRadius = 0.1f;
-            coverSettings.TallSideLeaveRadius = 0.05f;
-            coverSettings.LeftTallCornerOffset = 0.2f;
-            coverSettings.RightTallCornerOffset = 0.2f;
-            coverSettings.LowSideEnterRadius = 0.2f;
-            coverSettings.LowSideLeaveRadius = 0.1f;
-            coverSettings.LeftLowCornerOffset = 0.4f;
-            coverSettings.RightLowCornerOffset = 0.4f;
-            coverSettings.DirectionChangeDelay = 0.25f;
-            coverSettings.CornerOffset = new Vector3(0.8f, 0, 0);
-            coverSettings.Update.IdleNonCover = 10;
-            coverSettings.Update.IdleCover = 2;
-            coverSettings.Update.MovingNonCover = 0;
-            coverSettings.Update.MovingCover = 0;
-
-            // Configure ClimbSettings
-            ClimbSettings climbSettings = characterMotor.ClimbSettings;
-            climbSettings.CapsuleHeight = 1.5f;
-            climbSettings.VerticalScale = 1;
-            climbSettings.HorizontalScale = 1.05f;
-            climbSettings.Push = 0.5f;
-            climbSettings.PushOn = 0.6f;
-            climbSettings.PushOff = 0.9f;
-            climbSettings.CollisionOff = 0.3f;
-            climbSettings.CollisionOn = 0.7f;
-
-            // Configure VaultSettings
-            VaultSettings vaultSettings = characterMotor.VaultSettings;
-            vaultSettings.CapsuleHeight = 1;
-            vaultSettings.VerticalScale = 1.3f;
-            vaultSettings.HorizontalScale = 1.4f;
-            vaultSettings.Push = 0;
-            vaultSettings.PushOn = 0;
-            vaultSettings.PushOff = 1;
-            vaultSettings.CollisionOff = 0.1f;
-            vaultSettings.CollisionOn = 0.7f;
-
-            // Configure JumpSettings
-            JumpSettings jumpSettings = characterMotor.JumpSettings;
-            jumpSettings.Strength = 6;
-            jumpSettings.Speed = 6;
-            jumpSettings.CapsuleHeight = 1.5f;
-            jumpSettings.HeightDuration = 0.75f;
-            jumpSettings.RotationSpeed = 10;
-
-            // Configure RollSettings
-            RollSettings rollSettings = characterMotor.RollSettings;
-            rollSettings.CapsuleHeight = 1;
-            rollSettings.RotationSpeed = 10;
-
-            // Configure AimSettings
-            AimSettings aimSettings = characterMotor.AimSettings;
-            aimSettings.MaxAimAngle = 60;
-            aimSettings.WalkError = 2.5f;
-            aimSettings.RunError = 4;
-            aimSettings.SprintError = 6;
-
-            // Configure TurnSettings
-            TurnSettings turnSettings = characterMotor.TurnSettings;
-            turnSettings.StandingRotationSpeed = 20;
-            turnSettings.RunningRotationSpeed = 20;
-            turnSettings.MeleeIdleRotationSpeed = 7;
-            turnSettings.MeleeAttackRotationSpeed = 10;
-            turnSettings.SprintingRotationSpeed = 20;
-            turnSettings.GrenadeRotationSpeed = 20;
-
-            // Configure ShoulderSettings
-            ShoulderSettings shoulderSettings = characterMotor.ShoulderSettings;
-            shoulderSettings.Standing = new Vector3(0, 1.6f, 0);
-            shoulderSettings.Crouching = new Vector3(0, 1, 0);
-
-            // Configure HitResponseSettings
-            HitResponseSettings hitResponseSettings = characterMotor.HitResponseSettings;
-            hitResponseSettings.Wait = 0.5f;
-            hitResponseSettings.Strength = 20;
+            TPCSTCharacterMotor motor = character_defaults.characterMotor;
+            characterMotor.IsAlive = motor.IsAlive;
+            characterMotor.Speed = motor.Speed;
+            characterMotor.MoveMultiplier = motor.MoveMultiplier;
+            characterMotor.CanRun = motor.CanRun;
+            characterMotor.CanSprint = motor.CanSprint;
+            characterMotor.GroundThreshold = motor.GroundThreshold;
+            characterMotor.FallThreshold = motor.FallThreshold;
+            characterMotor.ObstacleDistance = motor.ObstacleDistance;
+            characterMotor.Gravity = motor.Gravity;
+            characterMotor.RecoilRecovery = motor.RecoilRecovery;
+            characterMotor.IsFiringFromCamera = motor.IsFiringFromCamera;
+            characterMotor.ZoomErrorMultiplier = motor.ZoomErrorMultiplier;
+            characterMotor.CrouchHeight = motor.CrouchHeight;
+            characterMotor.AccelerationDamp = motor.AccelerationDamp;
+            characterMotor.DeccelerationDamp = motor.DeccelerationDamp;
+            characterMotor.MaxSlope = motor.MaxSlope;
+            characterMotor.DamageMultiplier = motor.DamageMultiplier;
+            characterMotor.IsEquipped = motor.IsEquipped;
+            characterMotor.Weapon = motor.Weapon;
+            characterMotor.Grenade = motor.Grenade;
+            characterMotor.IK = motor.IK;
+            characterMotor.CoverSettings = motor.CoverSettings;
+            characterMotor.ClimbSettings = motor.ClimbSettings;
+            characterMotor.VaultSettings = motor.VaultSettings;
+            characterMotor.JumpSettings = motor.JumpSettings;
+            characterMotor.RollSettings = motor.RollSettings;
+            characterMotor.AimSettings = motor.AimSettings;
+            characterMotor.TurnSettings = motor.TurnSettings;
+            characterMotor.ShoulderSettings = motor.ShoulderSettings;
+            characterMotor.HitResponseSettings = motor.HitResponseSettings;
 
             AlertProgress("Setting Default CharacterMotor values complete");
         }
@@ -774,28 +453,26 @@ namespace CoverShooter.Tools
                 return;
             }
             AlertProgress("Setting Default ThirdPersonController values");
-            thirdPersonController.AutoTakeCover = true;
-            thirdPersonController.CoverEnterDelay = 0.1f;
-            thirdPersonController.AlwaysAim = false;
-            thirdPersonController.AimWhenWalking = false;
-            thirdPersonController.CrouchNearCovers = true;
-            thirdPersonController.ImmediateTurns = true;
-            thirdPersonController.MeleeRadius = 4;
-            thirdPersonController.MinMeleeDistance = 1.5f;
-            thirdPersonController.AimSustain = 0.3f;
-            thirdPersonController.NoAimSustain = 0.14f;
-            thirdPersonController.CancelHurt = true;
-            thirdPersonController.ThrowAngleOffset = 30;
-            thirdPersonController.MaxThrowAngle = 45;
-            thirdPersonController.PostLandAimDelay = 0.4f;
-            thirdPersonController.ArmLiftDelay = 1.5f;
 
 
-            GameObject explosionPreview = (GameObject)Resources.Load("Assets/Prefabs/ThrowExplosionPreview", typeof(GameObject));
-            thirdPersonController.ExplosionPreview = explosionPreview;
-
-            GameObject pathPreview = (GameObject)Resources.Load("Assets/Prefabs/GrenadePath", typeof(GameObject));
-            thirdPersonController.PathPreview = pathPreview;
+            TPCSTCharacterController characterController = character_defaults.characterController;
+            thirdPersonController.AutoTakeCover = characterController.AutoTakeCover;
+            thirdPersonController.CoverEnterDelay = characterController.CoverEnterDelay;
+            thirdPersonController.AlwaysAim = characterController.AlwaysAim;
+            thirdPersonController.AimWhenWalking = characterController.AimWhenWalking;
+            thirdPersonController.CrouchNearCovers = characterController.CrouchNearCovers;
+            thirdPersonController.ImmediateTurns = characterController.ImmediateTurns;
+            thirdPersonController.MeleeRadius = characterController.MeleeRadius;
+            thirdPersonController.MinMeleeDistance = characterController.MinMeleeDistance;
+            thirdPersonController.AimSustain = characterController.AimSustain;
+            thirdPersonController.NoAimSustain = characterController.NoAimSustain;
+            thirdPersonController.CancelHurt = characterController.CancelHurt;
+            thirdPersonController.ThrowAngleOffset = characterController.ThrowAngleOffset;
+            thirdPersonController.MaxThrowAngle = characterController.MaxThrowAngle;
+            thirdPersonController.PostLandAimDelay = characterController.PostLandAimDelay;
+            thirdPersonController.ArmLiftDelay = characterController.ArmLiftDelay;
+            thirdPersonController.ExplosionPreview = characterController.ExplosionPreview;
+            thirdPersonController.PathPreview = characterController.PathPreview;
 
             AlertProgress("Setting Default ThirdPersonController values complete");
         }
@@ -833,16 +510,17 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default ThirdPersonInput values");
 
-            thirdPersonInput.FastMovement = true;
-            thirdPersonInput.WalkWhenZooming = true;
-            thirdPersonInput.CameraOverride = null;
-            thirdPersonInput.HorizontalRotateSpeed = 6;
-            thirdPersonInput.VerticalRotateSpeed = 2;
-            thirdPersonInput.ZoomRotateMultiplier = 1;
-            thirdPersonInput.RotateWhenUnlocked = false;
-            thirdPersonInput.DoubleTapDelay = 0.3f;
-            thirdPersonInput.CustomActions = null;
-            thirdPersonInput.Disabler = null;
+            TPCSTInputController inputController = character_defaults.inputController;
+            thirdPersonInput.FastMovement = inputController.FastMovement;
+            thirdPersonInput.WalkWhenZooming = inputController.WalkWhenZooming;
+            thirdPersonInput.CameraOverride = inputController.CameraOverride;
+            thirdPersonInput.HorizontalRotateSpeed = inputController.HorizontalRotateSpeed;
+            thirdPersonInput.VerticalRotateSpeed = inputController.VerticalRotateSpeed;
+            thirdPersonInput.ZoomRotateMultiplier = inputController.ZoomRotateMultiplier;
+            thirdPersonInput.RotateWhenUnlocked = inputController.RotateWhenUnlocked;
+            thirdPersonInput.DoubleTapDelay = inputController.DoubleTapDelay;
+            thirdPersonInput.CustomActions = inputController.CustomActions;
+            thirdPersonInput.Disabler = inputController.Disabler;
 
             AlertProgress("Setting Default ThirdPersonInput values complete");
         }
@@ -880,35 +558,16 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default CharacterSounds values");
 
-            characterSounds.Footstep = null;
-            characterSounds.Death = null;
-            characterSounds.Jump = null;
-            characterSounds.Land = null;
-
-            AudioClip hit_impact = (AudioClip)Resources.Load("Sounds/IMPACT_Generic_09_Short_mono", typeof(AudioClip));
-            characterSounds.Block = new AudioClip[1];
-            characterSounds.Block[0] = hit_impact;
-
-
-            AudioClip gore_stab_01_mono = (AudioClip)Resources.Load("Sounds/GORE_Stab_01_mono", typeof(AudioClip));
-            AudioClip gore_stab_02_mono = (AudioClip)Resources.Load("Sounds/GORE_Stab_02_mono", typeof(AudioClip));
-            AudioClip gore_stab_03_mono = (AudioClip)Resources.Load("Sounds/GORE_Stab_03_mono", typeof(AudioClip));
-            characterSounds.Hit = new AudioClip[3];
-            characterSounds.Hit[0] = gore_stab_01_mono;
-            characterSounds.Hit[1] = gore_stab_02_mono;
-            characterSounds.Hit[2] = gore_stab_03_mono;
-
-
-            AudioClip gore_splat_hit_bubbles_mono = (AudioClip)Resources.Load("Sounds/GORE_Splat_Hit_Bubbles_mono", typeof(AudioClip));
-            AudioClip gore_splat_hit_deep_mono = (AudioClip)Resources.Load("Sounds/GORE_Splat_Hit_Deep_mono", typeof(AudioClip));
-            AudioClip gore_splat_hit_short_mono = (AudioClip)Resources.Load("Sounds/GORE_Splat_Hit_Short_mono", typeof(AudioClip));
-            characterSounds.BigHit = new AudioClip[3];
-            characterSounds.BigHit[0] = gore_splat_hit_bubbles_mono;
-            characterSounds.BigHit[1] = gore_splat_hit_deep_mono;
-            characterSounds.BigHit[2] = gore_splat_hit_short_mono;
-
-            characterSounds.BigDamageThreshold = 50;
-
+            TPCSTCharacterSounds tempCharacterSounds = character_defaults.characterSounds;
+            characterSounds.Footstep = tempCharacterSounds.Footstep;
+            characterSounds.Death = tempCharacterSounds.Death;
+            characterSounds.Jump = tempCharacterSounds.Jump;
+            characterSounds.Land = tempCharacterSounds.Land;
+            characterSounds.Block = tempCharacterSounds.Block;
+            characterSounds.Hurt = tempCharacterSounds.Hurt;
+            characterSounds.Hit = tempCharacterSounds.Hit;
+            characterSounds.BigHit = tempCharacterSounds.BigHit;
+            characterSounds.BigDamageThreshold = tempCharacterSounds.BigDamageThreshold;
 
             AlertProgress("Setting Default CharacterSounds values complete");
         }
@@ -946,28 +605,16 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default CharacterEffects values");
 
-            GameObject footsteps_test_1 = (GameObject)Resources.Load("Assets/Prefabs/Footsteps Test 1", typeof(GameObject));
-            characterEffects.Step = footsteps_test_1;
-
-            GameObject land = (GameObject)Resources.Load("Assets/Prefabs/Land", typeof(GameObject));
-            characterEffects.Land = land;
-
-            GameObject death = (GameObject)Resources.Load("Assets/Prefabs/Death", typeof(GameObject));
-            characterEffects.Death = death;
-
-            characterEffects.Resurrection = null;
-
-            GameObject hurt = (GameObject)Resources.Load("Assets/Prefabs/Hurt", typeof(GameObject));
-            characterEffects.Hurt = hurt;
-
-            GameObject footsteps_test = (GameObject)Resources.Load("Assets/Prefabs/Footsteps Test", typeof(GameObject));
-            characterEffects.Block = footsteps_test;
-
-            GameObject hit = (GameObject)Resources.Load("Assets/Gun/Particles/Blood", typeof(GameObject));
-            characterEffects.Hit = hit;
-
-            characterEffects.BigHit = null;
-            characterEffects.BigDamageThreshold = 50;
+            TPCSTCharacterEffects tempCharacterEffects = character_defaults.characterEffects;
+            characterEffects.Step = tempCharacterEffects.Step;
+            characterEffects.Land = tempCharacterEffects.Land;
+            characterEffects.Death = tempCharacterEffects.Death;
+            characterEffects.Resurrection = tempCharacterEffects.Resurrection;
+            characterEffects.Hurt = tempCharacterEffects.Hurt;
+            characterEffects.Block = tempCharacterEffects.Block;
+            characterEffects.Hit = tempCharacterEffects.Hit;
+            characterEffects.BigHit = tempCharacterEffects.BigHit;
+            characterEffects.BigDamageThreshold = tempCharacterEffects.BigDamageThreshold;
 
 
             AlertProgress("Setting Default CharacterEffects values complete");
@@ -1006,12 +653,13 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default CharacterEffects values");
 
-            characterAlerts.Step = 10;
-            characterAlerts.Hurt = 10;
-            characterAlerts.Death = 10;
-            characterAlerts.Jump = 10;
-            characterAlerts.Land = 10;
-            characterAlerts.Resurrect = 10;
+            TPCSTCharacterAlerts tempCharacterAlerts = character_defaults.characterAlerts;
+            characterAlerts.Step = tempCharacterAlerts.Step;
+            characterAlerts.Hurt = tempCharacterAlerts.Hurt;
+            characterAlerts.Death = tempCharacterAlerts.Death;
+            characterAlerts.Jump = tempCharacterAlerts.Jump;
+            characterAlerts.Land = tempCharacterAlerts.Land;
+            characterAlerts.Resurrect = tempCharacterAlerts.Resurrect;
 
             AlertProgress("Setting Default CharacterEffects values complete");
         }
@@ -1049,12 +697,13 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default CharacterHealth values");
 
-            characterHealth.Health = 500;
-            characterHealth.MaxHealth = 400;
-            characterHealth.Regeneration = 15;
-            characterHealth.DamageMultiplier = 1;
-            characterHealth.IsTakingDamage = true;
-            characterHealth.IsRegisteringHits = true;
+            TPCSTCharacterHealth tempCharacterHealth = character_defaults.characterHealth;
+            characterHealth.Health = tempCharacterHealth.Health;
+            characterHealth.MaxHealth = tempCharacterHealth.MaxHealth;
+            characterHealth.Regeneration = tempCharacterHealth.Regeneration;
+            characterHealth.DamageMultiplier = tempCharacterHealth.DamageMultiplier;
+            characterHealth.IsTakingDamage = tempCharacterHealth.IsTakingDamage;
+            characterHealth.IsRegisteringHits = tempCharacterHealth.IsRegisteringHits;
 
             AlertProgress("Setting Default CharacterHealth values complete");
         }
@@ -1092,7 +741,7 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default CharacterPlatform values");
 
-            characterPlatform.Threshold = 0.2f;
+            characterPlatform.Threshold = character_defaults.platformThreshold;
 
             AlertProgress("Setting Default CharacterPlatform values complete");
         }
@@ -1130,8 +779,8 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default CharacterInventory values");
 
-            // TODO: assign weapon prefabs in generator window 
-            characterInventory.Weapons = new WeaponDescription[7];
+            // TODO: set up if inventory scritpable attached
+            characterInventory.Weapons = null;
 
             AlertProgress("Setting Default CharacterInventory values complete");
         }
@@ -1169,7 +818,7 @@ namespace CoverShooter.Tools
             }
             AlertProgress("Setting Default ResetOnDeath values");
 
-            resetOnDeath.Delay = 3;
+            resetOnDeath.Delay = character_defaults.resetOnDeathDelay;
 
             AlertProgress("Setting Default ResetOnDeath values complete");
         }
@@ -1251,118 +900,209 @@ namespace CoverShooter.Tools
             return continute_setup;
         }
 
+        public virtual GameObject CreateFist(string name = "Fist")
+        {
+            GameObject fistObject = new GameObject
+            {
+                name = name
+            };
+
+            BoxCollider boxCollider = fistObject.AddComponent<BoxCollider>();
+            boxCollider.center = new Vector3(0, 0, 0.06f);
+            boxCollider.size = new Vector3(0.17f, 0.24f, 0.22f);
+            boxCollider.isTrigger = true;
+
+            Melee meleeObject = fistObject.AddComponent<Melee>();
+            meleeObject.Type = WeaponType.Fist;
+            meleeObject.Damage = 20;
+            meleeObject.Cooldown = 0.5f;
+            meleeObject.DamageResponseWaitTime = 0;
+
+            CreateObjectAtTransform(fistObject, StaticStrings.aim_transform_key);
+            CreateObjectAtTransform(fistObject, StaticStrings.aim_left_hand_transform_key);
+            CreateObjectAtTransform(fistObject, StaticStrings.model_transform_key);
+            CreateObjectAtTransform(fistObject, StaticStrings.tall_cover_left_transform_key);
+            CreateObjectAtTransform(fistObject, StaticStrings.tall_cover_right_transform_key);
+            CreateObjectAtTransform(fistObject, StaticStrings.low_cover_left_transform_key);
+            CreateObjectAtTransform(fistObject, StaticStrings.low_cover_right_transform_key);
+
+            return fistObject;
+        }
+
+        public virtual bool SetupWeaponHandHolders()
+        {
+            bool continue_setup = true;
+
+            if (left_hand == null || right_hand == null)
+            {
+                return continue_setup;
+            }
+
+            Transform leftHandWeapoNHolder = left_hand.Find(left_hand_weapon_holder_key);
+            GameObject weaponHolderTemp = null;
+
+            if (leftHandWeapoNHolder == null)
+            {
+                weaponHolderTemp = new GameObject
+                {
+                    name = left_hand_weapon_holder_key,
+                };
+
+                weaponHolderTemp.transform.parent = left_hand;
+                weaponHolderTemp.transform.localPosition = Vector3.zero;
+                weaponHolderTemp.transform.localRotation = Quaternion.identity;
+                weaponHolderTemp.transform.localScale = Vector3.one;
+
+                GameObject fist = CreateFist("LeftFist");
+                fist.transform.parent = weaponHolderTemp.transform;
+                fist.transform.localPosition = Vector3.zero;
+                fist.transform.localRotation = Quaternion.identity;
+                fist.transform.localScale = Vector3.one;
+            }
+
+            Transform rightHandWeapoNHolder = right_hand.Find(right_hand_weapon_holder_key);
+            weaponHolderTemp = null;
+            if (rightHandWeapoNHolder == null)
+            {
+                weaponHolderTemp = new GameObject
+                {
+                    name = right_hand_weapon_holder_key,
+                };
+
+                weaponHolderTemp.transform.parent = right_hand;
+                weaponHolderTemp.transform.localPosition = Vector3.zero;
+                weaponHolderTemp.transform.localRotation = Quaternion.identity;
+                weaponHolderTemp.transform.localScale = Vector3.one;
+
+                GameObject fist = CreateFist("RightFist");
+                fist.transform.parent = weaponHolderTemp.transform;
+                fist.transform.localPosition = Vector3.zero;
+                fist.transform.localRotation = Quaternion.identity;
+                fist.transform.localScale = Vector3.one;
+            }
+
+            return continue_setup;
+        }
+
+
         public virtual bool CheckCharacterDependencies()
         {
-            bool continute_setup = true;
+            bool continue_setup = true;
             AlertProgress("Checking Character Dependencies");
 
             if (character == null)
             {
                 AlertProgress("Character prefab unassigned shutting down character generator... I have failed you.");
-                continute_setup = false;
-                return continute_setup;
+                continue_setup = false;
+                return continue_setup;
             }
             else
             {
                 AlertProgress("Character prefab assigned, checking for required scripts");
-                continute_setup = SetupRuntimeAnimatorController();
-                if (continute_setup == false)
+                continue_setup = SetupRuntimeAnimatorController();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupRigidBody();
-                if (continute_setup == false)
+                continue_setup = SetupRigidBody();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCapsuleCollider();
-                if (continute_setup == false)
+                continue_setup = SetupCapsuleCollider();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
-                continute_setup = SetupActor();
-                if (continute_setup == false)
+                continue_setup = SetupActor();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
-                }
-
-                continute_setup = SetupCharacterMotor();
-                if (continute_setup == false)
-                {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupThirdPersonController();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterMotor();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupThirdPersonInput();
-                if (continute_setup == false)
+                continue_setup = SetupThirdPersonController();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCharacterSounds();
-                if (continute_setup == false)
+                continue_setup = SetupThirdPersonInput();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCharacterEffects();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterSounds();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCharacterAlerts();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterEffects();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCharacterHealth();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterAlerts();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCharacterPlatform();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterHealth();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCharacterInventory();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterPlatform();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupResetOnDeath();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterInventory();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupExitToEscape();
-                if (continute_setup == false)
+                //continue_setup = SetupResetOnDeath();
+                //if (continue_setup == false)
+                //{
+                //    return continue_setup;
+                //}
+
+                continue_setup = SetupExitToEscape();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
                 }
 
-                continute_setup = SetupCharacterFace();
-                if (continute_setup == false)
+                continue_setup = SetupCharacterFace();
+                if (continue_setup == false)
                 {
-                    return continute_setup;
+                    return continue_setup;
+                }
+
+                continue_setup = SetupWeaponHandHolders();
+                if(continue_setup == false)
+                {
+                    return continue_setup;
                 }
             }
 
             AlertProgress("Check Character Dependencies complete");
-            return continute_setup;
+            return continue_setup;
 
         }
 
@@ -1370,12 +1110,12 @@ namespace CoverShooter.Tools
 
         #region Editor GUI
 
-        [MenuItem("CoverShooter/Quick Setup Character")]
+        [MenuItem("CoverShooter/Generators/Quick Setup Character")]
         public static void ShowWindow()
         {
             window = EditorWindow.GetWindow<ThirdPersonCharacterGeneratorWindow>("Quick Character Setup");
-            window.minSize = new Vector2(400, 428);
-            window.maxSize = new Vector2(550, 500);
+            window.minSize = new Vector2(400, 380);
+            window.maxSize = new Vector2(400, 380);
             window.Show();
         }
 
@@ -1384,30 +1124,9 @@ namespace CoverShooter.Tools
             splashTexture = (Texture2D)Resources.Load("Textures/Third Person Cover Shooter Template - Character Generator", typeof(Texture2D));
         }
 
-        public virtual void OnGUI()
+        public override void OnGUI()
         {
-            // setup custom styles
-            if (titleStyle == null)
-            {
-                titleStyle = new GUIStyle(GUI.skin.label);
-                titleStyle.fontSize = 20;
-                titleStyle.fontStyle = FontStyle.Bold;
-                titleStyle.alignment = TextAnchor.MiddleCenter;
-            }
-
-            if (subtitleStyle == null)
-            {
-                subtitleStyle = new GUIStyle(titleStyle);
-                subtitleStyle.fontSize = 12;
-                subtitleStyle.fontStyle = FontStyle.Italic;
-            }
-
-            if (wrapperStyle == null)
-            {
-                wrapperStyle = new GUIStyle(GUI.skin.box);
-                wrapperStyle.normal.textColor = GUI.skin.label.normal.textColor;
-                wrapperStyle.padding = new RectOffset(8, 8, 16, 8);
-            }
+            base.OnGUI();
 
             // SPLASH
             if (splashTexture != null)
@@ -1427,9 +1146,15 @@ namespace CoverShooter.Tools
 
             EditorGUILayout.Separator();
 
+            camera_tag = EditorGUILayout.TagField("Camera Tag", camera_tag);
             camera = (GameObject)EditorGUILayout.ObjectField("Player Camera", camera, typeof(GameObject), true);
+
+            EditorGUILayout.Separator();
+            selected_layer = EditorGUILayout.LayerField("Player Layer:", selected_layer);
+
             character = (GameObject)EditorGUILayout.ObjectField("Player Controller", character, typeof(GameObject), true);
-            runtimeAnimatorController = (RuntimeAnimatorController)EditorGUILayout.ObjectField("Player Animator", runtimeAnimatorController, typeof(RuntimeAnimatorController), true);
+            character_defaults = (TPCSTScriptableCharacter)EditorGUILayout.ObjectField("Character Defaults", character_defaults, typeof(TPCSTScriptableCharacter), true);
+
             left_hand = (Transform)EditorGUILayout.ObjectField("Left Hand", left_hand, typeof(Transform), true);
             right_hand = (Transform)EditorGUILayout.ObjectField("Right Hand", right_hand, typeof(Transform), true);
            
@@ -1450,9 +1175,9 @@ namespace CoverShooter.Tools
 
             GUI.enabled = character != null
                 && camera != null
-                && runtimeAnimatorController != null;
-                //&& left_hand != null
-                //&& right_hand != null;
+                && character_defaults != null
+                && left_hand != null
+                && right_hand != null;
 
             if (GUILayout.Button("Make it quick", GUILayout.Height(50)))
             {
@@ -1461,6 +1186,7 @@ namespace CoverShooter.Tools
 
                 CheckCharacterDependencies();
                 CheckCameraDependencies();
+                character.layer = selected_layer;
 
                 AlertProgress("Jobs done");
 
