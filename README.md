@@ -50,6 +50,7 @@ There are two ways to import the Third-Person-Cover-Shooter-Template-Character-T
 - [x] Weapon Inventory Generator
 - [x] Weapon Inventory Scriptables
 - [x] AI Generator
+- [x] AI Scriptables
 - [ ] UI Generator
 - [ ] Better error handling
 - [ ] Clean up
